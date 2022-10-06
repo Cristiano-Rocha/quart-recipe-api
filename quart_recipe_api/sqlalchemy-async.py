@@ -41,3 +41,41 @@ class Recipe(Base):
                 , "favesCount": self.favesCount
                 , "commentsCount": self.commentsCount
                 }
+
+
+class RecipeDAL:
+    def __init__(self, db_session):
+        self.db_session = db_session
+
+
+    async def create_recipe(self, name, author, image, description, recipeCategory, channel, ratingValue, worstRating, favesCount, commentsCount ):
+        new_recipe = Recipe(
+                name=name,
+                author=author,
+                image=image,
+                description=description,
+                recipeCategory=recipeCategory,
+                channel=channel,
+                ratingValue=ratingValue,
+                worstRating=worstRating,
+                favesCount=favesCount,
+                commentsCount=commentsCount
+                )
+        self.db_session.add(new_recipe)
+        await self.db_session.flush()
+        return new_recipe.json()
+
+
+    async def get_all_recipe(self):
+        query_result = await self.db_session.execute(select(Recipe).order_by(Recipe.id))
+        return {"recipes": [recipe.json() for recipe in query_result.scalars().all() ]}
+
+    async def get_recipe(self, recipe_id):
+        query = select(Recipe).where(Recipe.id == recipe_id)
+        query_result = await self.db_session.execute(query)
+        recipe = query_result.one()
+        return recipe[0].json() 
+
+
+    
+
